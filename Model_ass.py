@@ -1,34 +1,19 @@
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration
 import torch
 
-# Load the model and tokenizer
-tokenizer = GPT2Tokenizer.from_pretrained('gpt2-large')
-model = GPT2LMHeadModel.from_pretrained('gpt2-large')
+# تحميل النموذج والمفكك
+tokenizer = BlenderbotTokenizer.from_pretrained('facebook/blenderbot-400M-distill')
+model = BlenderbotForConditionalGeneration.from_pretrained('facebook/blenderbot-400M-distill')
 
-# Set the model to evaluation mode
-model.eval()
-
-# Prepare the input text
-input_text = "hi dude how are ya?"
+# إعداد النص
+input_text = "Hi! How are you today?"
 input_ids = tokenizer.encode(input_text, return_tensors='pt')
 
-# Create attention mask
-attention_mask = torch.ones(input_ids.shape, dtype=torch.long)
-
-# Generate the text with improved parameters
+# توليد الرد
 with torch.no_grad():
-    output = model.generate(
-        input_ids,
-        attention_mask=attention_mask,
-        max_length=150,
-        num_return_sequences=1,
-        temperature=0.7,   # Control randomness
-        top_k=50,          # Limit the number of highest probability vocabulary
-        top_p=0.95,        # Nucleus sampling
-        do_sample=True     # Enable sampling
-    )
+    output_ids = model.generate(input_ids, max_length=100, num_return_sequences=1)
 
-# Decode the generated text
-output_text = tokenizer.decode(output[0], skip_special_tokens=True)
+# فك تشفير النص الناتج
+output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
 print(output_text)
