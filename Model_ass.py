@@ -9,7 +9,7 @@ model = GPT2LMHeadModel.from_pretrained('gpt2-large')
 model.eval()
 
 # Prepare the input text
-input_text = "Person 1: Hi! How are you today?\nPerson 2:"
+input_text = "hi dude how are ya?"
 input_ids = tokenizer.encode(input_text, return_tensors='pt')
 
 # Create attention mask
