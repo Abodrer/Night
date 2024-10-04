@@ -2,8 +2,8 @@ from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration
 import torch
 
 # تحميل النموذج والمفكك
-tokenizer = BlenderbotTokenizer.from_pretrained('facebook/blenderbot-9B')
-model = BlenderbotForConditionalGeneration.from_pretrained('facebook/blenderbot-9B')
+tokenizer = BlenderbotTokenizer.from_pretrained('facebook/blenderbot-3B')
+model = BlenderbotForConditionalGeneration.from_pretrained('facebook/blenderbot-3B')
 
 # إعداد النص
 input_text = "Hi! How are you today?"
