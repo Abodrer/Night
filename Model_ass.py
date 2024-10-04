@@ -40,7 +40,7 @@ if __name__ == "__main__":
     print("Welcome to the BlenderBot conversation!")
     
     # تحميل المحادثات من ملف JSON
-    conversations = load_conversations('text.json')
+    conversations = load_conversations('texts.json')
     
     for input_text in conversations:
         print("You (from JSON): ", input_text)
