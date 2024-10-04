@@ -6,7 +6,7 @@ tokenizer = BlenderbotTokenizer.from_pretrained('facebook/blenderbot-3B')
 model = BlenderbotForConditionalGeneration.from_pretrained('facebook/blenderbot-3B')
 
 # إعداد النص
-input_text = "Hi! How are you today?"
+input_text = "Hi! How are you today? Do you like anime? "
 input_ids = tokenizer.encode(input_text, return_tensors='pt')
 
 # توليد الرد
