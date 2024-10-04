@@ -3,10 +3,13 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArgume
 from datasets import Dataset
 
 # تحميل البيانات من ملف JSON
-with open('train.json', 'r', encoding='utf-8') as file:
-    data = json.load(file)
-
-texts = data.get('texts', [])
+try:
+    with open('texts.json', 'r', encoding='utf-8') as file:
+        data = json.load(file)
+    texts = data.get('texts', [])
+except Exception as e:
+    print(f"Error loading data: {e}")
+    exit()
 
 # إعداد الـ tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
@@ -30,6 +33,7 @@ training_args = TrainingArguments(
     per_device_train_batch_size=2,
     save_steps=10_000,
     save_total_limit=2,
+    logging_dir='./logs',
 )
 
 # إنشاء مدرب
@@ -41,6 +45,9 @@ trainer = Trainer(
 
 # بدء التدريب
 trainer.train()
+
+# حفظ النموذج المدرب
+trainer.save_model('./results/final_model')
 
 # وظيفة لتوليد نصوص
 def generate_long_story(seed_text, total_words_count=50):
