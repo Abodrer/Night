@@ -15,9 +15,18 @@ input_ids = tokenizer.encode(input_text, return_tensors='pt')
 # Create attention mask
 attention_mask = torch.ones(input_ids.shape, dtype=torch.long)
 
-# Generate the text
+# Generate the text with improved parameters
 with torch.no_grad():
-    output = model.generate(input_ids, attention_mask=attention_mask, max_length=100, num_return_sequences=1)
+    output = model.generate(
+        input_ids,
+        attention_mask=attention_mask,
+        max_length=150,
+        num_return_sequences=1,
+        temperature=0.7,   # Control randomness
+        top_k=50,          # Limit the number of highest probability vocabulary
+        top_p=0.95,        # Nucleus sampling
+        do_sample=True     # Enable sampling
+    )
 
 # Decode the generated text
 output_text = tokenizer.decode(output[0], skip_special_tokens=True)
