@@ -1,20 +1,25 @@
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import torch
 
-# تحميل النموذج والمفكك
+# Load the model and tokenizer
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 model = GPT2LMHeadModel.from_pretrained('gpt2')
 
-# إعداد النص
-input_text = "الشخص الأول: مرحباً! كيف حالك اليوم؟\nالشخص الثاني:"
+# Set the model to evaluation mode
+model.eval()
 
-# ترميز النص
+# Prepare the input text
+input_text = "Person 1: Hi! How are you today?\nPerson 2:"
 input_ids = tokenizer.encode(input_text, return_tensors='pt')
 
-# توليد النص
-output = model.generate(input_ids, max_length=100, num_return_sequences=1)
+# Create attention mask
+attention_mask = torch.ones(input_ids.shape, dtype=torch.long)
 
-# فك تشفير النص الناتج
+# Generate the text
+with torch.no_grad():
+    output = model.generate(input_ids, attention_mask=attention_mask, max_length=100, num_return_sequences=1)
+
+# Decode the generated text
 output_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
 print(output_text)
