@@ -1,27 +1,24 @@
 import numpy as np
-import json
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.layers import LSTM, Dense, Embedding, Dropout, Bidirectional, Input, Attention, Flatten
 from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers import Adam
+import json
 
 # Load texts from a JSON file
 with open('texts.json', 'r', encoding='utf-8') as file:
     data = json.load(file)
-
-# Assuming data is a list of texts
-texts = data['texts']  # تأكد من أن بنية الـ JSON مناسبة
+    texts = data['texts']
 
 # Preparing the data
-texts = [text.strip() for text in texts if text.strip()]  # Remove whitespace and empty lines
-
-# Creating input and target sequences
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts(texts)
 total_words = len(tokenizer.word_index) + 1
 
+# Creating input and target sequences
 input_sequences = []
 for text in texts:
     token_list = tokenizer.texts_to_sequences([text])[0]
@@ -37,13 +34,30 @@ input_sequences = pad_sequences(input_sequences, maxlen=max_length, padding='pre
 X, y = input_sequences[:, :-1], input_sequences[:, -1]
 y = keras.utils.to_categorical(y, num_classes=total_words)
 
-# Building the model
+# Load GloVe embeddings
+embedding_dim = 100
+embeddings_index = {}
+with open('glove.6B.100d.txt', 'r', encoding='utf-8') as f:
+    for line in f:
+        values = line.split()
+        word = values[0]
+        embedding_vector = np.asarray(values[1:], dtype='float32')
+        embeddings_index[word] = embedding_vector
+
+# Create an embedding matrix
+embedding_matrix = np.zeros((total_words, embedding_dim))
+for word, i in tokenizer.word_index.items():
+    embedding_vector = embeddings_index.get(word)
+    if embedding_vector is not None:
+        embedding_matrix[i] = embedding_vector
+
+# Building the model with complex enhancements
 inputs = Input(shape=(max_length - 1,))
-embedding_layer = Embedding(total_words, 100)(inputs)
+embedding_layer = Embedding(total_words, embedding_dim, weights=[embedding_matrix], trainable=False)(inputs)
 bidirectional_lstm = Bidirectional(LSTM(150, return_sequences=True))(embedding_layer)
 bidirectional_lstm = Dropout(0.3)(bidirectional_lstm)
 
-# Adding Attention layer
+# Enhanced Attention Layer
 attention = Attention()([bidirectional_lstm, bidirectional_lstm])
 attention = Flatten()(attention)
 attention = Dropout(0.3)(attention)
@@ -53,10 +67,10 @@ outputs = Dense(total_words, activation='softmax')(attention)
 
 # Compiling the model
 model = Model(inputs, outputs)
-model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy', optimizer=Adam(learning_rate=0.001), metrics=['accuracy'])
 
-# Training the model with more epochs and validation split
-model.fit(X, y, epochs=200, verbose=1, validation_split=0.2)
+# Training the model
+model.fit(X, y, epochs=200, verbose=1)
 
 # Function to generate longer text with improved control over repetition
 def generate_long_story(seed_text, total_words_count=50):
@@ -68,21 +82,24 @@ def generate_long_story(seed_text, total_words_count=50):
         
         predicted = model.predict(token_list, verbose=0)
         predicted_probs = predicted[0]
-
+        
         # Applying penalty for repeated words
         for word in used_words:
             if word in tokenizer.word_index:
                 idx = tokenizer.word_index[word]
-                predicted_probs[idx] *= 0.5  # Reducing the probability of choosing repeated words
+                predicted_probs[idx] *= 0.5  # Reduce the probability of choosing repeated words
 
-        predicted_word_index = np.argmax(predicted_probs)
+        # Introduce a randomness factor
+        predicted_probs = predicted_probs ** (1 / 1.5)  # Sharpen the probability distribution
+        predicted_probs /= np.sum(predicted_probs)  # Normalize
+
+        predicted_word_index = np.random.choice(range(len(predicted_probs)), p=predicted_probs)
         output_word = tokenizer.index_word[predicted_word_index]
-        
-        if output_word:  # Ensure the predicted word is valid
-            used_words.add(output_word)
-            story += " " + output_word
-    
-    return story
+
+        used_words.add(output_word)
+        story += " " + output_word
+
+    return story.strip()
 
 # Using the model to generate a long text
 long_story = generate_long_story("Once upon a time,", total_words_count=50)
