@@ -1,15 +1,9 @@
-import json
 from transformers import BlenderbotTokenizer, BlenderbotForConditionalGeneration
 import torch
 
 # تحميل النموذج والمفكك
 tokenizer = BlenderbotTokenizer.from_pretrained('facebook/blenderbot-3B')
 model = BlenderbotForConditionalGeneration.from_pretrained('facebook/blenderbot-3B')
-
-def load_conversations(file_path):
-    with open(file_path, 'r') as f:
-        data = json.load(f)
-    return data.get("conversations", [])
 
 def generate_response(input_text):
     try:
@@ -39,15 +33,7 @@ def generate_response(input_text):
 if __name__ == "__main__":
     print("Welcome to the BlenderBot conversation!")
     
-    # تحميل المحادثات من ملف JSON
-    conversations = load_conversations('texts.json')
-    
-    for input_text in conversations:
-        print("You (from JSON): ", input_text)
-        response = generate_response(input_text)
-        print("BlenderBot: ", response)
-
-    print("\nNow you can have a conversation. Type 'exit' or 'quit' to stop.")
+    print("\nType 'exit' or 'quit' to stop the conversation.")
     
     # تفاعل مع المستخدم
     while True:
