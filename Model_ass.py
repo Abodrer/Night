@@ -58,7 +58,7 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 
 # Training the model with callbacks
 early_stopping = EarlyStopping(monitor='val_loss', patience=5)
-model.fit(X, y, epochs=200, verbose=1, validation_split=0.2, callbacks=[early_stopping])
+model.fit(X, y, epochs=100, verbose=1, validation_split=0.2, callbacks=[early_stopping])
 
 # Function to generate longer text with improved control over repetition
 def generate_long_story(seed_text, total_words_count=50):
