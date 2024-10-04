@@ -3,7 +3,7 @@ from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArgume
 from datasets import Dataset
 
 # تحميل البيانات من ملف JSON
-with open('texts.json', 'r', encoding='utf-8') as file:
+with open('train.json', 'r', encoding='utf-8') as file:
     data = json.load(file)
 
 texts = data.get('texts', [])
