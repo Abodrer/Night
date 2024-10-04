@@ -34,26 +34,19 @@ input_sequences = pad_sequences(input_sequences, maxlen=max_length, padding='pre
 X, y = input_sequences[:, :-1], input_sequences[:, -1]
 y = keras.utils.to_categorical(y, num_classes=total_words)
 
-# Load GloVe embeddings
-embedding_dim = 100
-embeddings_index = {}
-with open('glove.6B.100d.txt', 'r', encoding='utf-8') as f:
-    for line in f:
-        values = line.split()
-        word = values[0]
-        embedding_vector = np.asarray(values[1:], dtype='float32')
-        embeddings_index[word] = embedding_vector
-
-# Create an embedding matrix
-embedding_matrix = np.zeros((total_words, embedding_dim))
-for word, i in tokenizer.word_index.items():
-    embedding_vector = embeddings_index.get(word)
-    if embedding_vector is not None:
-        embedding_matrix[i] = embedding_vector
+# Custom Loss Function incorporating regression-like aspects
+def custom_loss(y_true, y_pred):
+    # Using a combination of cross-entropy and a regularization term
+    cross_entropy_loss = keras.losses.categorical_crossentropy(y_true, y_pred)
+    
+    # Regularization term (L2 Regularization as an example)
+    reg_loss = 0.01 * tf.reduce_sum([tf.nn.l2_loss(v) for v in model.trainable_variables])
+    
+    return cross_entropy_loss + reg_loss
 
 # Building the model with complex enhancements
 inputs = Input(shape=(max_length - 1,))
-embedding_layer = Embedding(total_words, embedding_dim, weights=[embedding_matrix], trainable=False)(inputs)
+embedding_layer = Embedding(total_words, 100)(inputs)
 bidirectional_lstm = Bidirectional(LSTM(150, return_sequences=True))(embedding_layer)
 bidirectional_lstm = Dropout(0.3)(bidirectional_lstm)
 
@@ -65,9 +58,9 @@ attention = Dropout(0.3)(attention)
 # Final layer
 outputs = Dense(total_words, activation='softmax')(attention)
 
-# Compiling the model
+# Compiling the model with the custom loss function
 model = Model(inputs, outputs)
-model.compile(loss='categorical_crossentropy', optimizer=Adam(learning_rate=0.001), metrics=['accuracy'])
+model.compile(loss=custom_loss, optimizer=Adam(learning_rate=0.001), metrics=['accuracy'])
 
 # Training the model
 model.fit(X, y, epochs=200, verbose=1)
@@ -83,7 +76,7 @@ def generate_long_story(seed_text, total_words_count=50):
         predicted = model.predict(token_list, verbose=0)
         predicted_probs = predicted[0]
         
-        # Applying penalty for repeated words
+        # Applying penalty for repeated words and using advanced probability distribution
         for word in used_words:
             if word in tokenizer.word_index:
                 idx = tokenizer.word_index[word]
