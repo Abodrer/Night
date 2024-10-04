@@ -40,12 +40,14 @@ if __name__ == "__main__":
     print("Welcome to the BlenderBot conversation!")
     
     # تحميل المحادثات من ملف JSON
-    conversations = load_conversations('texts.json')
+    conversations = load_conversations('text.json')
     
     for input_text in conversations:
         print("You (from JSON): ", input_text)
         response = generate_response(input_text)
         print("BlenderBot: ", response)
+
+    print("\nNow you can have a conversation. Type 'exit' or 'quit' to stop.")
     
     # تفاعل مع المستخدم
     while True:
